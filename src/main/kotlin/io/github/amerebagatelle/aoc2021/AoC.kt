@@ -23,11 +23,14 @@ fun register(puzzle: Puzzle) {
 }
 
 fun registerAll() {
-
+    register(Day1())
 }
 
+@Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
 @OptIn(ExperimentalTime::class)
 fun main() {
+    registerAll()
+
     val day = LocalDateTime.now().dayOfMonth
     val puzzle = puzzleMap[day] ?: error("No puzzle for today.  You forgot to register it you dummy")
     println("Running both parts of puzzle $day")
