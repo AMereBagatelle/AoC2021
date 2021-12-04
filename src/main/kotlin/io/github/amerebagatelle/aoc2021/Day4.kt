@@ -6,19 +6,7 @@ class Day4: Puzzle {
     override fun run1(): Number {
         val input = getInput()
         val calledList = input[0].split(",").map { it.toInt() }
-
-        val boards = mutableListOf<BingoBoard>()
-        // create boards
-        for (boardPos in 2..input.lastIndex step 6) {
-            val board = input.subList(boardPos, boardPos+5).map { it.split(" ").filter { value -> !value.isBlank() } }
-            val bingoBoard = mutableMapOf<Pair<Int, Int>, Pair<Int, Boolean>>()
-            for (x in board.indices) {
-                for (y in board[x].indices) {
-                    bingoBoard[Pair(x, y)] = Pair(board[x][y].toInt(), false)
-                }
-            }
-            boards.add(BingoBoard(bingoBoard))
-        }
+        val boards = createBoards(input)
 
         var chosenBoard: BingoBoard? = null
         var winningCall = 0
@@ -40,26 +28,15 @@ class Day4: Puzzle {
     override fun run2(): Number {
         val input = getInput()
         val calledList = input[0].split(",").map { it.toInt() }
-
-        val boards = mutableListOf<BingoBoard>()
-        // create boards
-        for (boardPos in 2..input.lastIndex step 6) {
-            val board = input.subList(boardPos, boardPos+5).map { it.split(" ").filter { value -> !value.isBlank() } }
-            val bingoBoard = mutableMapOf<Pair<Int, Int>, Pair<Int, Boolean>>()
-            for (x in board.indices) {
-                for (y in board[x].indices) {
-                    bingoBoard[Pair(x, y)] = Pair(board[x][y].toInt(), false)
-                }
-            }
-            boards.add(BingoBoard(bingoBoard))
-        }
+        val boards = createBoards(input)
 
         var winningCall = 0
         var chosenBoard: BingoBoard? = null
 
         for(call in calledList) {
-            val isLast = boards.filter { !it.check() }.size == 1
-            for (board in boards.filter { !it.check() }) {
+            val remainingBoards = boards.filter { !it.check() }
+            val isLast = remainingBoards.size == 1
+            for (board in remainingBoards) {
                 board.markNumber(call)
                 if(isLast && board.check()) {
                     winningCall = call
@@ -68,12 +45,33 @@ class Day4: Puzzle {
             }
             if(chosenBoard != null) break
         }
-        println(chosenBoard!!.getUnmarked())
+
         return chosenBoard!!.getUnmarked().sum() * winningCall
+    }
+
+    private fun createBoards(input: List<String>): List<BingoBoard> {
+        val boards = mutableListOf<BingoBoard>()
+        for (boardPos in 2..input.lastIndex step 6) {
+            val board = input.subList(boardPos, boardPos+5).map { it.split(" ").filter { value -> value.isNotBlank() }.map { value -> value.toInt() } }
+            boards.add(BingoBoard.fromList(board))
+        }
+        return boards
     }
 }
 
-data class BingoBoard(val board: MutableMap<Pair<Int, Int>, Pair<Int, Boolean>>) {
+class BingoBoard(private val board: MutableMap<Pair<Int, Int>, Pair<Int, Boolean>>) {
+    companion object {
+        fun fromList(list: List<List<Int>>): BingoBoard {
+            val bingoBoardMap = mutableMapOf<Pair<Int, Int>, Pair<Int, Boolean>>()
+            for (x in list.indices) {
+                for (y in list[x].indices) {
+                    bingoBoardMap[Pair(x, y)] = Pair(list[x][y], false)
+                }
+            }
+            return BingoBoard(bingoBoardMap)
+        }
+    }
+
     fun check(): Boolean {
         for (x in 0..4) {
             if(board.filterKeys { it.first == x }.values.all { it.second }) {
@@ -98,7 +96,5 @@ data class BingoBoard(val board: MutableMap<Pair<Int, Int>, Pair<Int, Boolean>>)
         }
     }
 
-    fun getUnmarked(): List<Int> {
-        return board.filterValues { !it.second }.map { it.value.first }
-    }
+    fun getUnmarked(): List<Int> = board.filterValues { !it.second }.map { it.value.first }
 }
