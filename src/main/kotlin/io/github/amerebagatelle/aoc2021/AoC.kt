@@ -29,6 +29,7 @@ fun registerAll() {
     register(Day4())
     register(Day5())
     register(Day6())
+    register(Day7())
 }
 
 @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
